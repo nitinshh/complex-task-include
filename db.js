@@ -14,7 +14,7 @@ var connectDb = () => {
   sequelize
     .authenticate()
     .then(() => {
-      sequelize.sync({ alter: true }),
+      sequelize.sync({ alter: false }),
         console.log("db is connect and sync also");
     })
     .catch((err) => {
