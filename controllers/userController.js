@@ -1,3 +1,4 @@
+const Sequelize = require('sequelize')
 const Models = require("../models/index");
 const Joi = require("joi");
 const helper = require("../helpers/commonHelper");
@@ -119,7 +120,7 @@ module.exports = {
     }
   },
 
-  // New API: Update User
+
   updateUser: async (req, res) => {
     try {
       const schema = Joi.object().keys({
@@ -168,6 +169,9 @@ module.exports = {
       return res.status(400).send({ error: error.message });
     }
   },
+
+
+//------------INCLUDE-------------------------
 
   findPostAllData: async (req, res) => {
     try {
@@ -240,4 +244,48 @@ module.exports = {
       throw error;
     }
   },
+
+//--------------------------------------------
+
+
+
+//---------------SUB-QUERIES------------------
+
+postDataFull: async (req, res) => {
+  try {
+    // Define the attributes to be selected
+    let projection = [
+      "id", // Post ID
+      "userId", // Post creator's ID
+      // Fetch user's name using a subquery
+      [Sequelize.literal('(SELECT name FROM users WHERE users.id = posts.userId)'), 'userName'],
+      // Fetch post content (assuming the 'post' field exists in the postModel table)
+      [Sequelize.literal('(SELECT post FROM posts WHERE posts.id = posts.id)'), 'postContent'],
+      // Fetch images related to the post
+      [Sequelize.literal('(SELECT GROUP_CONCAT(images) FROM post_images WHERE post_images.postId = posts.id)'), 'images'],
+      // Fetch comments related to the post
+      [Sequelize.literal('(SELECT GROUP_CONCAT(commentText) FROM post_comments WHERE post_comments.postId = posts.id)'), 'comments'],
+      // Fetch the names of users who made the comments
+      [Sequelize.literal('(SELECT GROUP_CONCAT(users.name) FROM post_comments JOIN users ON post_comments.userId = users.id WHERE post_comments.postId = posts.id)'), 'commentUsers']
+    ];
+
+    // Fetch the post data
+    let response = await Models.postModel.findAll({
+      attributes: projection
+    });
+
+    // Send the response back to the client
+    res.send(response);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ error: 'An error occurred while fetching post data.' });
+  }
+}
+
+
+
+
+
+
+
 };

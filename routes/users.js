@@ -14,6 +14,9 @@ router.get('/getAll', userController.get)
 router.get('/findPostAllData', userController.findPostAllData)
 router.get('/findUserPostDataDetails', userController.findUserPostDataDetails)
 
+router.get('/postDataFull', userController.postDataFull)
+
+
 
 
 
